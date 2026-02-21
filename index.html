@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>X-TRACKER | CLOUD OVERRIDE</title>
+  <title>X-TRACKER | TACTICAL MAP</title>
   <link rel="icon" href="https://files.catbox.moe/ejn7q9.jpeg" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -14,7 +14,7 @@
   <style>
     :root { --bg: #030305; --accent: #F4320B; --neon: #00f3ff; --glass: rgba(15, 15, 25, 0.9); }
     * { box-sizing: border-box; }
-    body, html { margin:0; padding:0; background:var(--bg); color:#fff; font-family:'JetBrains Mono', monospace; height:100vh; overflow:hidden; }
+    body, html { margin:0; padding:0; background:var(--bg); color:#fff; font-family:'JetBrains Mono', monospace; min-height:100vh; overflow-x:hidden; }
 
     /* INTRO ANIMATION */
     #introOverlay {
@@ -26,9 +26,9 @@
     video { width: 100%; height: 100%; object-fit: cover; }
 
     /* MAIN APP */
-    #mainApp { display: none; padding: 15px; height: 100vh; background: radial-gradient(circle at top, #0d0d15 0%, #030305 100%); opacity: 0; transition: 1s; }
+    #mainApp { display: none; padding: 15px; background: radial-gradient(circle at top, #0d0d15 0%, #030305 100%); opacity: 0; transition: 1s; }
     
-    .card { background:var(--glass); border:1px solid rgba(244,50,11,0.3); padding:15px; border-radius:4px; margin-bottom:15px; backdrop-filter:blur(10px); }
+    .card { background:var(--glass); border: 1px solid rgba(244,50,11,0.3); padding:15px; border-radius:4px; margin-bottom:15px; backdrop-filter:blur(10px); }
     input { width:100%; background:#000; border:1px solid #222; padding:10px; color:var(--neon); outline:none; margin-bottom:10px; font-family: 'JetBrains Mono'; }
     
     .btn { width:100%; padding:10px; border:none; font-family:'Orbitron'; font-size:0.7rem; font-weight:bold; cursor:pointer; transition: 0.3s; }
@@ -36,9 +36,13 @@
     .btn-blue { background:transparent; border:1px solid var(--neon); color:var(--neon); }
     .btn:active { transform: scale(0.95); }
 
-    #map-box { width:100%; height:250px; margin-top:10px; display:none; border:1px solid var(--accent); }
-    iframe { width:100%; height:100%; border:none; filter: invert(90%) hue-rotate(180deg); }
+    /* MAP TABLE SYSTEM */
+    .map-table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid var(--accent); display: none; }
+    .map-table th { background: var(--accent); color: #fff; font-family: 'Orbitron'; font-size: 0.6rem; padding: 8px; text-align: left; }
+    .map-table td { background: #000; padding: 0; position: relative; }
     
+    #mFrame { width: 100%; height: 350px; border: none; filter: invert(90%) hue-rotate(180deg) contrast(1.2); }
+
     .code-display { font-size:2rem; font-family:'Orbitron'; color:var(--neon); text-align:center; margin:10px 0; letter-spacing: 5px; text-shadow: 0 0 10px var(--neon); }
     .status-log { font-size: 0.6rem; color: #555; margin-top: 5px; }
   </style>
@@ -51,18 +55,32 @@
         <source src="https://files.catbox.moe/mm85lg.mp4" type="video/mp4">
       </video>
     </div>
-    <p style="font-family:'Orbitron'; color:var(--accent); font-size:0.7rem; margin-top:15px; letter-spacing:3px;">BOOTING_X_SYSTEM...</p>
+    <p style="font-family:'Orbitron'; color:var(--accent); font-size:0.7rem; margin-top:15px; letter-spacing:3px;">INITIALIZING_TACTICAL_MAP...</p>
   </div>
 
   <div id="mainApp">
-    <h1 style="font-family:'Orbitron'; font-size:0.9rem; color:var(--accent); text-align:center; margin-bottom:20px;">X-TRACKER <span style="color:#fff">CLOUD V6</span></h1>
+    <h1 style="font-family:'Orbitron'; font-size:0.9rem; color:var(--accent); text-align:center; margin-bottom:20px;">X-TRACKER <span style="color:#fff">V6.5</span></h1>
     
-    <div style="max-width:400px; margin:auto;">
+    <div style="max-width:500px; margin:auto;">
       <div class="card">
-        <div style="font-size:0.5rem; color:var(--accent); margin-bottom:5px;">[1] INTERCEPTOR_MODULE</div>
+        <div style="font-size:0.5rem; color:var(--accent); margin-bottom:5px;">[1] INTERCEPTOR_CORE</div>
         <input type="text" id="targetID" placeholder="PASTE_TARGET_CODE">
-        <button class="btn btn-red" onclick="startTracking()">DECRYPT_LOCATION</button>
-        <div id="map-box"><iframe id="mFrame"></iframe></div>
+        <button class="btn btn-red" onclick="startTracking()">DECRYPT_DATA</button>
+        
+        <table class="map-table" id="tacticalTable">
+          <tr>
+            <th><i class="fa-solid fa-map-location-dot"></i> LIVE_SATELLITE_FEED</th>
+          </tr>
+          <tr>
+            <td>
+              <iframe id="mFrame" src=""></iframe>
+            </td>
+          </tr>
+          <tr>
+            <th id="coordInfo" style="background:#111; font-family:'JetBrains Mono'; font-size:0.5rem; color:var(--neon);">COORDS: WAITING_SIGNAL...</th>
+          </tr>
+        </table>
+
         <div id="monLog" class="status-log">> Waiting for link...</div>
       </div>
 
@@ -76,20 +94,19 @@
   </div>
 
 <script>
-  // --- FIREBASE CONFIG FIX ---
+  // --- FIREBASE CONFIG (Tetap Pake Milik Lu) ---
   const firebaseConfig = {
     apiKey: "AIzaSyDEQPbyTMnAv5wKmPzSkoUxxt-troi1Zy4",
     authDomain: "my-lacak.firebaseapp.com",
     projectId: "my-lacak",
     storageBucket: "my-lacak.firebasestorage.app",
     messagingSenderId: "629191404429",
-    appId: "1:629191404429:web:b20db7a5455dd99a2f2bc4" // FIXED
+    appId: "1:629191404429:web:b20db7a5455dd99a2f2bc4"
   };
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // INTRO DELAY
   window.onload = () => {
     setTimeout(() => {
       document.getElementById('introOverlay').style.opacity = "0";
@@ -111,8 +128,6 @@
 
     if (!active) {
       if (!navigator.geolocation) return alert("GPS_UNSUPPORTED");
-
-      // GENERATE KODE ACAK
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       display.innerText = code;
       active = true;
@@ -125,10 +140,7 @@
           lng: p.coords.longitude,
           upd: Date.now()
         });
-        log.innerText = `> Uplink Active: ${p.coords.latitude.toFixed(4)}`;
-      }, (err) => {
-        log.innerText = "> ERROR: GPS_DENIED";
-      }, {enableHighAccuracy:true});
+      }, null, {enableHighAccuracy:true});
     } else {
       navigator.geolocation.clearWatch(wID);
       active = false;
@@ -140,28 +152,34 @@
 
   function startTracking() {
     const code = document.getElementById('targetID').value.toUpperCase();
-    const mapBox = document.getElementById('map-box');
+    const table = document.getElementById('tacticalTable');
     const frame = document.getElementById('mFrame');
     const log = document.getElementById('monLog');
+    const coordInfo = document.getElementById('coordInfo');
 
     if (!code) return;
 
-    log.innerText = "> Scanning satellite nodes...";
+    log.innerText = "> Intercepting satellite frequency...";
     
     db.ref('targets/' + code).on('value', (snap) => {
       const data = snap.val();
       if (data) {
-        log.innerText = `> TARGET_LOCKED: [${data.lat}, ${data.lng}]`;
-        // FIX GOOGLE MAPS URL
-        frame.src = `https://maps.google.com/maps?q=${data.lat},${data.lng}&z=15&output=embed`;
-        mapBox.style.display = 'block';
+        log.innerText = `> TARGET_LOCKED: SUCCESS`;
+        coordInfo.innerText = `COORDS: ${data.lat}, ${data.lng} | UPDATED: ${new Date(data.upd).toLocaleTimeString()}`;
+        
+        // Render Peta di Tabel
+        const mapUrl = `https://www.google.com/maps/embed/v1/view?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&center=${data.lat},${data.lng}&zoom=17&maptype=satellite`;
+        
+        // Pake embed standar kalo ga punya API Key Google:
+        frame.src = `https://maps.google.com/maps?q=${data.lat},${data.lng}&z=17&output=embed`;
+        
+        table.style.display = 'table';
       } else {
-        log.innerText = "> ERROR: SIGNAL_NOT_FOUND";
-        mapBox.style.display = 'none';
+        log.innerText = "> ERROR: SIGNAL_LOST";
+        table.style.display = 'none';
       }
     });
   }
 </script>
 </body>
-  </html>
-  
+</html>
