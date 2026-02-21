@@ -3,98 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>X-TRACKER | TACTICAL MAP</title>
-  <link rel="icon" href="https://files.catbox.moe/ejn7q9.jpeg" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <title>X-SYSTEM | SECURE LOGIN</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <style>
-    :root { --bg: #030305; --accent: #F4320B; --neon: #00f3ff; --glass: rgba(15, 15, 25, 0.9); }
-    * { box-sizing: border-box; }
-    body, html { margin:0; padding:0; background:var(--bg); color:#fff; font-family:'JetBrains Mono', monospace; min-height:100vh; overflow-x:hidden; }
-
-    /* INTRO ANIMATION */
-    #introOverlay {
-      position: fixed; inset: 0; background: #000;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 10000; transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1);
-    }
-    .video-wrap { width: 180px; height: 180px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent); box-shadow: 0 0 30px var(--accent); }
-    video { width: 100%; height: 100%; object-fit: cover; }
-
-    /* MAIN APP */
-    #mainApp { display: none; padding: 15px; background: radial-gradient(circle at top, #0d0d15 0%, #030305 100%); opacity: 0; transition: 1s; }
-    
-    .card { background:var(--glass); border: 1px solid rgba(244,50,11,0.3); padding:15px; border-radius:4px; margin-bottom:15px; backdrop-filter:blur(10px); }
-    input { width:100%; background:#000; border:1px solid #222; padding:10px; color:var(--neon); outline:none; margin-bottom:10px; font-family: 'JetBrains Mono'; }
-    
-    .btn { width:100%; padding:10px; border:none; font-family:'Orbitron'; font-size:0.7rem; font-weight:bold; cursor:pointer; transition: 0.3s; }
-    .btn-red { background:var(--accent); color:#fff; }
-    .btn-blue { background:transparent; border:1px solid var(--neon); color:var(--neon); }
-    .btn:active { transform: scale(0.95); }
-
-    /* MAP TABLE SYSTEM */
-    .map-table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid var(--accent); display: none; }
-    .map-table th { background: var(--accent); color: #fff; font-family: 'Orbitron'; font-size: 0.6rem; padding: 8px; text-align: left; }
-    .map-table td { background: #000; padding: 0; position: relative; }
-    
-    #mFrame { width: 100%; height: 350px; border: none; filter: invert(90%) hue-rotate(180deg) contrast(1.2); }
-
-    .code-display { font-size:2rem; font-family:'Orbitron'; color:var(--neon); text-align:center; margin:10px 0; letter-spacing: 5px; text-shadow: 0 0 10px var(--neon); }
-    .status-log { font-size: 0.6rem; color: #555; margin-top: 5px; }
+    :root { --bg: #030305; --accent: #F4320B; --neon: #00f3ff; }
+    body, html { margin:0; padding:0; background:var(--bg); color:#fff; font-family: sans-serif; height:100vh; overflow-x:hidden; }
+    .container { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; padding:20px; text-align:center; }
+    .card { background: rgba(15,15,25,0.9); border:1px solid #333; padding:25px; border-radius:8px; width:100%; max-width:400px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    .btn-google { background: #fff; color: #000; border:none; padding:12px 20px; border-radius:4px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; width:100%; margin-top:20px; }
+    .btn-track { background: var(--accent); color:#fff; width:100%; padding:12px; border:none; border-radius:4px; margin-top:10px; font-weight:bold; cursor:pointer; }
+    #map-box { margin-top:20px; width:100%; border:1px solid var(--accent); display:none; }
+    iframe { width:100%; height:300px; border:none; }
+    .status { font-size: 0.7rem; color: #888; margin-top: 10px; }
+    #userInfo { margin-bottom: 20px; display:none; }
+    #userInfo img { width: 50px; border-radius: 50%; }
   </style>
 </head>
 <body>
 
-  <div id="introOverlay">
-    <div class="video-wrap">
-      <video id="player" playsinline autoplay muted loop>
-        <source src="https://files.catbox.moe/mm85lg.mp4" type="video/mp4">
-      </video>
+  <div class="container">
+    <div class="card" id="authCard">
+      <h2 style="color:var(--neon)">SECURE_ACCESS</h2>
+      <p style="font-size:0.8rem">Please login with Google to synchronize tracking nodes.</p>
+      <button class="btn-google" onclick="loginGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
+      </button>
     </div>
-    <p style="font-family:'Orbitron'; color:var(--accent); font-size:0.7rem; margin-top:15px; letter-spacing:3px;">INITIALIZING_TACTICAL_MAP...</p>
-  </div>
 
-  <div id="mainApp">
-    <h1 style="font-family:'Orbitron'; font-size:0.9rem; color:var(--accent); text-align:center; margin-bottom:20px;">X-TRACKER <span style="color:#fff">V6.5</span></h1>
-    
-    <div style="max-width:500px; margin:auto;">
-      <div class="card">
-        <div style="font-size:0.5rem; color:var(--accent); margin-bottom:5px;">[1] INTERCEPTOR_CORE</div>
-        <input type="text" id="targetID" placeholder="PASTE_TARGET_CODE">
-        <button class="btn btn-red" onclick="startTracking()">DECRYPT_DATA</button>
-        
-        <table class="map-table" id="tacticalTable">
-          <tr>
-            <th><i class="fa-solid fa-map-location-dot"></i> LIVE_SATELLITE_FEED</th>
-          </tr>
-          <tr>
-            <td>
-              <iframe id="mFrame" src=""></iframe>
-            </td>
-          </tr>
-          <tr>
-            <th id="coordInfo" style="background:#111; font-family:'JetBrains Mono'; font-size:0.5rem; color:var(--neon);">COORDS: WAITING_SIGNAL...</th>
-          </tr>
-        </table>
-
-        <div id="monLog" class="status-log">> Waiting for link...</div>
+    <div class="card" id="trackingCard" style="display:none;">
+      <div id="userInfo">
+        <img id="userPic" src="">
+        <h4 id="userName"></h4>
+      </div>
+      
+      <div id="beaconSection">
+        <div style="font-size:1.5rem; font-weight:bold; color:var(--neon); margin:10px 0;" id="myCode">------</div>
+        <button class="btn-track" style="background:#0088ff" onclick="activateBeacon()">ACTIVATE_BEACON</button>
       </div>
 
-      <div class="card">
-        <div style="font-size:0.5rem; color:var(--neon); margin-bottom:5px;">[2] BEACON_GENERATOR</div>
-        <div id="codeShow" class="code-display">------</div>
-        <button class="btn btn-blue" id="bBtn" onclick="toggleBeacon()">ACTIVATE_BEACON</button>
-        <div id="beacLog" class="status-log">> Beacon status: OFFLINE</div>
+      <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+
+      <div id="monitorSection">
+        <input type="text" id="targetID" placeholder="ENTER_TARGET_CODE" style="width:100%; padding:10px; background:#000; border:1px solid #444; color:#fff; margin-bottom:10px;">
+        <button class="btn-track" onclick="startTracking()">DECRYPT_LOCATION</button>
+        <div id="map-box">
+          <iframe id="mFrame" src=""></iframe>
+          <div id="coords" style="font-size:0.6rem; background:#111; padding:5px; color:var(--neon)"></div>
+        </div>
       </div>
+      <p id="log" class="status">> System Idle...</p>
     </div>
   </div>
 
 <script>
-  // --- FIREBASE CONFIG (Tetap Pake Milik Lu) ---
+  // --- KONFIGURASI FIREBASE LU (PASTIIN BENER!) ---
   const firebaseConfig = {
     apiKey: "AIzaSyDEQPbyTMnAv5wKmPzSkoUxxt-troi1Zy4",
     authDomain: "my-lacak.firebaseapp.com",
@@ -105,78 +71,60 @@
   };
 
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db = firebase.database();
 
-  window.onload = () => {
-    setTimeout(() => {
-      document.getElementById('introOverlay').style.opacity = "0";
-      setTimeout(() => {
-        document.getElementById('introOverlay').style.display = "none";
-        document.getElementById('mainApp').style.display = "block";
-        document.getElementById('mainApp').style.opacity = "1";
-      }, 800);
-    }, 4000);
-  };
-
-  let active = false;
-  let wID = null;
-
-  function toggleBeacon() {
-    const btn = document.getElementById('bBtn');
-    const display = document.getElementById('codeShow');
-    const log = document.getElementById('beacLog');
-
-    if (!active) {
-      if (!navigator.geolocation) return alert("GPS_UNSUPPORTED");
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-      display.innerText = code;
-      active = true;
-      btn.innerText = "TERMINATE_SIGNAL";
-      log.innerText = "> Status: BROADCASTING...";
-
-      wID = navigator.geolocation.watchPosition((p) => {
-        db.ref('targets/' + code).set({
-          lat: p.coords.latitude,
-          lng: p.coords.longitude,
-          upd: Date.now()
-        });
-      }, null, {enableHighAccuracy:true});
-    } else {
-      navigator.geolocation.clearWatch(wID);
-      active = false;
-      display.innerText = "------";
-      btn.innerText = "ACTIVATE_BEACON";
-      log.innerText = "> Status: OFFLINE";
-    }
+  // 1. LOGIN GOOGLE (ASLI)
+  function loginGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).then((result) => {
+      showApp(result.user);
+    }).catch((error) => {
+      alert("Login Failed: " + error.message);
+    });
   }
 
+  function showApp(user) {
+    document.getElementById('authCard').style.display = 'none';
+    document.getElementById('trackingCard').style.display = 'block';
+    document.getElementById('userInfo').style.display = 'block';
+    document.getElementById('userPic').src = user.photoURL;
+    document.getElementById('userName').innerText = user.displayName;
+  }
+
+  // 2. ACTIVATE BEACON (KIRIM LOKASI)
+  function activateBeacon() {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    document.getElementById('myCode').innerText = code;
+    document.getElementById('log').innerText = "> SATELLITE_UPLINK_ACTIVE";
+
+    navigator.geolocation.watchPosition((p) => {
+      db.ref('targets/' + code).set({
+        lat: p.coords.latitude,
+        lng: p.coords.longitude,
+        name: auth.currentUser.displayName,
+        upd: Date.now()
+      });
+    }, (err) => { alert("Please Allow Location!"); }, {enableHighAccuracy: true});
+  }
+
+  // 3. START TRACKING (LIAT PETA TARGET)
   function startTracking() {
-    const code = document.getElementById('targetID').value.toUpperCase();
-    const table = document.getElementById('tacticalTable');
-    const frame = document.getElementById('mFrame');
-    const log = document.getElementById('monLog');
-    const coordInfo = document.getElementById('coordInfo');
+    const target = document.getElementById('targetID').value.toUpperCase();
+    if(!target) return;
 
-    if (!code) return;
-
-    log.innerText = "> Intercepting satellite frequency...";
+    document.getElementById('log').innerText = "> INTERCEPTING_SIGNAL...";
     
-    db.ref('targets/' + code).on('value', (snap) => {
+    db.ref('targets/' + target).on('value', (snap) => {
       const data = snap.val();
-      if (data) {
-        log.innerText = `> TARGET_LOCKED: SUCCESS`;
-        coordInfo.innerText = `COORDS: ${data.lat}, ${data.lng} | UPDATED: ${new Date(data.upd).toLocaleTimeString()}`;
-        
-        // Render Peta di Tabel
-        const mapUrl = `https://www.google.com/maps/embed/v1/view?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&center=${data.lat},${data.lng}&zoom=17&maptype=satellite`;
-        
-        // Pake embed standar kalo ga punya API Key Google:
-        frame.src = `https://maps.google.com/maps?q=${data.lat},${data.lng}&z=17&output=embed`;
-        
-        table.style.display = 'table';
+      if(data) {
+        document.getElementById('map-box').style.display = 'block';
+        // PAKE HTTPS BIAR GAK DI-BLOCK BROWSER
+        document.getElementById('mFrame').src = `https://maps.google.com/maps?q=${data.lat},${data.lng}&z=16&output=embed`;
+        document.getElementById('coords').innerText = `Target: ${data.name} | Coords: ${data.lat}, ${data.lng}`;
+        document.getElementById('log').innerText = "> LOCK_SUCCESS";
       } else {
-        log.innerText = "> ERROR: SIGNAL_LOST";
-        table.style.display = 'none';
+        alert("SIGNAL_NOT_FOUND");
       }
     });
   }
